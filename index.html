@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tuition Center System</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(45deg, #111, #2b2b2b, #8e2de2);
+      color: white;
+      overflow-x: hidden;
+    }
+    nav {
+      background: linear-gradient(45deg, #96ed00, #48c6ef);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+    }
+    nav h1 {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #596035;
+      text-transform: uppercase;
+    }
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 1rem;
+    }
+    nav ul li {
+      background: #333;
+      padding: 0.5rem 1.5rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    nav ul li:hover {
+      background: #ff7eb9;
+      transform: scale(1.1);
+    }
+    section {
+      padding: 2rem;
+    }
+    section h2 {
+      color: #00b4d8;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #444;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.2rem;
+    }
+    th {
+      background: #26dacb;
+      color: black;
+    }
+    td {
+      background: #222;
+      color: #75ab19;
+    }
+    .button {
+      background: linear-gradient(45deg, #00b4d8, #48c6ef);
+      color: black;
+      padding: 0.8rem 1.8rem;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s ease;
+      margin: 1rem 0;
+    }
+    .button:hover {
+      background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+      transform: scale(1.1);
+    }
+    .attendance-mark {
+      padding: 0.4rem 1rem;
+      background: linear-gradient(45deg, #0adceb, #ff3366);
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      color: black;
+      transition: 0.3s ease;
+    }
+    .attendance-mark:hover {
+      background: linear-gradient(45deg, #ff7eb9, #ff47b7);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Tuition Center</h1>
+    <ul>
+      <li onclick="switchTab('attendance')">Attendance</li>
+    </ul>
+  </nav>
+
+  <!-- Dashboard Section -->
+  <section id="dashboard" class="active">
+    <h2>Student Dashboard</h2>
+    <div id="student-details">Loading student details...</div>
+  </section>
+
+  <!-- Attendance Section -->
+  <section id="attendance">
+    <h2>Mark Attendance</h2>
+    <div id="attendance-list">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Attendance</th>
+          </tr>
+        </thead>
+        <tbody id="attendance-table-body">
+          <!-- Student list will be populated here -->
+        </tbody>
+      </table>
+      <button class="button" onclick="exportAttendance()">Export to Excel</button>
+    </div>
+  </section>
+
+  <!-- Marks Section -->
+
+
+  <script>
+    // Dummy student data
+    const students = [
+      { name: 'Sehajdeep Singh Walia', email: 'sehaj@tution.com' },
+      { name: 'Other students', email: 'student2@example.com' },
+      { name: 'Other students', email: 'student3@example.com' },
+      { name: 'Other students', email: 'student4@example.com' },
+      { name: 'Other students', email: 'student5@example.com' },
+      { name: 'Other students', email: 'student6@example.com' },
+      { name: 'Other students', email: 'student7@example.com' },
+      { name: 'Other students', email: 'student8@example.com' },
+      { name: 'Other students', email: 'student9@example.com' },
+      { name: 'Other students', email: 'student10@example.com' },
+      { name: 'Other students', email: 'student11@example.com' }
+    ];
+
+    // Load attendance from localStorage or initialize if none exists
+    function loadAttendance() {
+      let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
+      const attendanceTableBody = document.getElementById('attendance-table-body');
+      let attendanceHTML = '';
+
+      students.forEach(student => {
+        let status = attendance[student.email] || 'Not Marked';
+        attendanceHTML += `
+          <tr>
+            <td>${student.name}</td>
+            <td>
+              <button class="attendance-mark" onclick="markAttendance('${student.email}')">${status}</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      attendanceTableBody.innerHTML = attendanceHTML;
+    }
+
+    // Mark attendance for a student
+    function markAttendance(studentEmail) {
+      let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
+      const status = prompt("Enter attendance status (Present/Absent):", "Present");
+
+      if (status) {
+        attendance[studentEmail] = status;
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+        loadAttendance();
+      }
+    }
+
+    // Export attendance data to CSV
+    function exportAttendance() {
+      let attendance = JSON.parse(localStorage.getItem('attendance')) || {};
+      let csv = 'Student Name,Email,Attendance\n';
+
+      students.forEach(student => {
+        let status = attendance[student.email] || 'Not Marked';
+        csv += `"${student.name}","${student.email}","${status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      saveAs(blob, 'attendance.csv');
+    }
+
+    // Switch between sections
+    function switchTab(tab) {
+      document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+      document.getElementById(tab).classList.add('active');
+    }
+
+    // Load student details on dashboard
+    function loadDashboard() {
+      const studentDetails = document.getElementById('student-details');
+      let studentHTML = '<table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>';
+
+      students.forEach(student => {
+        studentHTML += `<tr><td>${student.name}</td><td>${student.email}</td></tr>`;
+      });
+
+      studentHTML += '</tbody></table>';
+      studentDetails.innerHTML = studentHTML;
+
+      // Load attendance
+      loadAttendance();
+    }
+
+    // Initial call to load the dashboard and attendance data
+    loadDashboard();
+  </script>
+</body>
+</html>
